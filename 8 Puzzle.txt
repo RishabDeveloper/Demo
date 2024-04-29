@@ -1,0 +1,92 @@
+import heapq
+
+class PuzzleNode:
+    def __init__(self, state, parent=None, move=None, depth=0):
+        self.state = state
+        self.parent = parent
+        self.move = move
+        self.depth = depth
+        self.cost = self.calculate_cost()
+
+    def __lt__(self, other):
+        return self.cost < other.cost
+
+    def __eq__(self, other):
+        return self.state == other.state
+
+    def get_blank_position(self):
+        for i in range(3):
+            for j in range(3):
+                if self.state[i][j] == 0:
+                    return i, j
+
+    def generate_children(self):
+        children = []
+        i, j = self.get_blank_position()
+        moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+        for move in moves:
+            ni, nj = i + move[0], j + move[1]
+
+            if 0 <= ni < 3 and 0 <= nj < 3:
+                new_state = [row[:] for row in self.state]
+                new_state[i][j], new_state[ni][nj] = new_state[ni][nj], new_state[i][j]
+                child_node = PuzzleNode(new_state, parent=self, move=(ni, nj), depth=self.depth + 1)
+                children.append(child_node)
+
+        return children
+
+    def calculate_cost(self):
+        cost = self.depth
+        for i in range(3):
+            for j in range(3):
+                value = self.state[i][j]
+                if value != 0:
+                    goal_i, goal_j = divmod(value - 1, 3)
+                    cost += abs(i - goal_i) + abs(j - goal_j)
+        return cost
+
+def a_star_search(initial_state, goal_state):
+    initial_node = PuzzleNode(initial_state)
+    goal_node = PuzzleNode(goal_state)
+
+    if initial_node == goal_node:
+        return [initial_node.state]
+
+    open_set = [initial_node]
+    closed_set = set()
+
+    while open_set:
+        current_node = heapq.heappop(open_set)
+        closed_set.add(tuple(map(tuple, current_node.state)))
+
+        for child_node in current_node.generate_children():
+            if tuple(map(tuple, child_node.state)) not in closed_set:
+                if child_node == goal_node:
+                    path = [child_node.state]
+                    while child_node.parent:
+                        child_node = child_node.parent
+                        path.append(child_node.state)
+                    return path[::-1]
+
+                heapq.heappush(open_set, child_node)
+
+    return None
+  
+print("Enter Initial State")
+initial_state = [[int(ele) for ele in input().split(" ")] for i in range(3)]
+
+
+print("Enter Goal State")
+goal_state = [[int(ele) for ele in input().split(" ")] for i in range(3)]
+
+solution_path = a_star_search(initial_state, goal_state)
+
+if solution_path:
+    for step, state in enumerate(solution_path):
+        print(f"Step {step + 1}:\n")
+        for row in state:
+            print(row)
+        print("\n") ,
+else:
+    print("No solution found.")

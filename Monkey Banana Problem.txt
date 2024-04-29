@@ -1,0 +1,42 @@
+class MonkeyBananaProblem:
+ def __init__(self, state):
+        self.state = state	
+
+ def actions(self, state):
+        possible_actions = ["left", "right", "up", "down"]
+        return possible_actions
+
+ def result(self, state, action):
+        x, y = state
+        if action == "left":
+            return (x - 1, y)
+        elif action == "right":
+            return (x + 1, y)
+        elif action == "up":
+            return (x, y + 1)
+        elif action == "down":
+            return (x, y - 1)
+
+ def goal_test(self, state):
+        return state == (2, 2)
+
+ def solve(self):
+        frontier = [([self.state], 0)]
+
+        while frontier:
+            path, cost = frontier.pop(0)
+            current_state = path[-1]
+            if self.goal_test(current_state):
+                return path, cost
+            for action in self.actions(current_state):
+                new_state = self.result(current_state, action)
+                if new_state not in path:
+                    new_path = path + [new_state]
+                    new_cost = cost + 1
+                    frontier.append((new_path, new_cost))
+        return None
+initial_state = (0, 0)
+problem = MonkeyBananaProblem(initial_state)
+solution_path, solution_cost = problem.solve()
+print("Solution Path:", solution_path)
+print("Solution Cost:", solution_cost)
